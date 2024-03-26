@@ -19,7 +19,7 @@ const transactionSchema=mongoose.Schema(
         },
 
         tokenId:{
-            type: String,
+            type: Number,
             required:true
         },
 

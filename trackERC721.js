@@ -1,19 +1,25 @@
 const { Web3 } = require("web3");
 const axios = require('axios');
 const abi = require('./abi.json');
+require('dotenv').config();
 const {addTransaction} = require('./controllers/transaction.controller.js');
-const infuraUrl='https://mainnet.infura.io/v3/73bbf158fcfc4ae683879fab67a6d762';
 
+const infuraUrlHttp=process.env.INFURA_URL_HTTP;
+const infuraUrlWss=process.env.INFURA_URL_WSS;
+
+//Function to interact with ERC721 transfer events
 async function main(){
     console.log("started");
-  const web3 = new Web3("wss://mainnet.infura.io/ws/v3/73bbf158fcfc4ae683879fab67a6d762");
+  const web3 = new Web3(infuraUrlWss);
 
   let options721 = {
     topics: [web3.utils.sha3("Transfer(address,address,uint256)")],
   };
   
+  //Subscribing to erc721 
   let subscription721 = await web3.eth.subscribe("logs", options721);
 
+  //checking if subsciption started successfully
   subscription721.on("error", (err) => {
     throw err;
   });
@@ -62,7 +68,9 @@ subscription721.on('data', async(event) => {
               `Token ID: ${transaction.tokenId}\n`+
               `Log index: ${event.logIndex}`
           );
+          console.log(typeof(transaction.tokenId))
 
+          //Retrieving NFT metadata if its in Url format i.e.ipfs link
           let tokenURI=''
           try {
             tokenURI = await getTokenURI(event.address, transaction.tokenId);
@@ -73,12 +81,13 @@ subscription721.on('data', async(event) => {
             console.error('Error retrieving or processing metadata:', error);
           }
 
+        //preparing the request body for posting to db .
         let req={}
         req['transactionHash']=event.transactionHash
         req['blockNumber']=event.blockNumber.toString()
         req['receiver']=transaction.to
         req['sender']=transaction.from
-        req['tokenId']=transaction.tokenId.toString()
+        req['tokenId']=Number(transaction.tokenId)
         req['logIndex']=event.logIndex
         req['contractAddress']=event.address
         req['metadataURI']=tokenURI
@@ -93,7 +102,7 @@ subscription721.on('data', async(event) => {
 async function getTokenURI(contractAddress, tokenId) {
   try{
     
-    const web3 = new Web3(new Web3.providers.HttpProvider(infuraUrl));
+    const web3 = new Web3(new Web3.providers.HttpProvider(infuraUrlHttp));
     const contract = new web3.eth.Contract(abi, contractAddress);
     const tokenURI = await contract.methods.tokenURI(tokenId).call();
     if (tokenURI.startsWith("http://") || tokenURI.startsWith("https://"))//checking for infura or url based metadata link
@@ -105,7 +114,6 @@ async function getTokenURI(contractAddress, tokenId) {
   }
   }
   catch(error){
-    console.log("token uri not found",error)
     return ""
   }
  }

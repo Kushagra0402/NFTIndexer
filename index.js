@@ -1,9 +1,13 @@
 const express = require('express')
 const mongoose=require('mongoose')
+require('dotenv').config();
 const Transaction=require('./models/transaction.model.js')
 const transactionRoute=require("./routes/transaction.route.js")
 const app= express()
-const{main}=require("./trackERC721.js")
+const{main}=require("./trackERC721.js");
+const { error } = require('console');
+const dbUrl=process.env.DB_URL;
+
 app.use(express.json())
 app.use(express.urlencoded({extended: false}));
 
@@ -18,8 +22,8 @@ app.get('/',(req,res)=>{
 
 
 
-
-mongoose.connect("mongodb+srv://kushagrakanodia:MiXECUBnYUEyRuhD@eventindexerdb.gvmywlk.mongodb.net/Transaction?retryWrites=true&w=majority&appName=EventIndexerDB")
+console.log("dburl=",dbUrl)
+mongoose.connect(dbUrl)
 .then(()=>{
     console.log("Connected to db");
     app.listen(3000,()=>{
