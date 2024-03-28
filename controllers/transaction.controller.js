@@ -1,5 +1,6 @@
 const Transaction=require('../models/transaction.model');
 
+//controller function which actually interacts with the db
 const getTransactions=async(req,res)=>{
     try{
         const transactions=await Transaction.find({});
@@ -9,6 +10,7 @@ const getTransactions=async(req,res)=>{
     }
 }
 
+//controller function to query by request param
 const getTransactionsByParam=async(req,res)=>{
 try{
     console.log("query",req.query)
@@ -19,6 +21,7 @@ try{
 }
 }
 
+//controller function called internally by erc721 transfer event listener script
 const addTransaction=async(req)=>{
     try{
         console.log("REQ ="+req)

@@ -1,4 +1,6 @@
 const mongoose=require('mongoose')
+
+//Schema for storing indexed ERC721 transfers
 const transactionSchema=mongoose.Schema(
     {
 
